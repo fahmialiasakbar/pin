@@ -7,10 +7,10 @@ if (!$id_sms or !$jenis) {
     header('location: index.php');
 }
 
+
 $tahun_ajar = '2020';
-// echo "<pre>";
-// var_dump($id_sms);
-// var_dump($jenis);
+$limit = 20;
+
 
 $sql = "
 select id_sms, nm_lemb, nm_jenj_didik as jenjang from sms
@@ -20,23 +20,18 @@ where id_sms = '$id_sms'";
 $result = pg_query($conn, $sql);
 $sms = pg_fetch_assoc($result);
 
-// var_dump($sql);
-// print_r($sms);
-// var_dump($sms);
-// die;
 include('header.php');
 include('aturan.php');
 
-if ($jenis = 'reservasi') {
+if ($jenis == 'reservasi') {
     $a_aturan = $a_aturan_reservasi[$sms['jenjang']];
 } else {
     $a_aturan = $a_aturan_pemasangan[$sms['jenjang']];
 }
 
+
 foreach ($a_aturan as $k => $v)
     eval('$' . $k . ' = $v;');
-
-// print_r($a_aturan);
 
 $sql = "
 select id_sms, reg.id_reg_pd, nipd, sks_total, nm_pd, jk, nik, tgl_keluar, no_seri_ijazah, mulai_smt, sk_yudisium, ipk, nm_lemb, smt_mulai, id_stat_mhs, nm_jenj_didik from peserta_didik pd
@@ -63,19 +58,10 @@ and ($tahun_ajar - substr(mulai_smt,1,4)::int) <= $tahun_max
 and over_sks.id_smt is null
 and over_sks_pendek.id_smt is null
 order by tgl_keluar desc
-limit 10";
-
-// var_dump($sql);
+limit $limit";
 
 $result = pg_query($conn, $sql);
 $a_eligible = pg_fetch_all($result);
-
-// echo "<pre>";
-// var_dump("Miaw");
-// var_dump($sql);
-// print_r($a_eligible);
-// die;
-
 
 $sql = "
 select id_sms, reg.id_reg_pd, nipd, sks_total, nm_pd, jk, nik, tgl_keluar, no_seri_ijazah, mulai_smt, sk_yudisium, ipk, nm_lemb, smt_mulai, id_stat_mhs, nm_jenj_didik,
@@ -116,18 +102,10 @@ and
     or over_sks_pendek.id_smt is not null
 )
 order by mulai_smt desc
-limit 10";
-
-// echo "<pre>";
-// var_dump("Miaw");
-// var_dump($sql);
-// die;
+limit $limit";
 
 $result = pg_query($conn, $sql);
 $a_uneligible = pg_fetch_all($result);
-// print_r($a_siswa);
-// print_r($a_aturan);
-// die;
 ?>
 
 <body>
@@ -194,10 +172,6 @@ $a_uneligible = pg_fetch_all($result);
                         }
                         echo $msg;
                     ?></td>
-                    <!-- <th>NIM</th>
-                    <th>SKS</th>
-                    <th>IPK</th>
-                    <th>Alasan</th> -->
                 </tr>
             <?php endforeach; ?>
         </table>
