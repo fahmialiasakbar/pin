@@ -1,87 +1,50 @@
 <?php
 // echo "<pre>";
-$schema      = 'public';
-$table       = 'daya_tampung';
-$host        = "host = localhost";
-$port        = "port = 5432";
-$dbname      = "dbname = feeder";
-$credentials = "user = postgres password=root";
-
-$conn = pg_connect("$host $port $dbname $credentials");
+include_once('conn.php');
 if (!$conn) {
     echo "Error : Server Down\n";
     exit;
 }
 
-?>
+$sql = "
+select id_sms, nm_lemb, nm_jenj_didik as jenjang from sms
+left join ref.jenjang_pendidikan using(id_jenj_didik)
+where id_sp = '$id_sp' and id_jns_sms = 3 
+order by id_jenj_didik
+";
 
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Document</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65VohhpuuCOmLASjC" crossorigin="anonymous">
-</head>
-<body>
-    <div class="container">
-        <h2>Reservasi </h2>
-        <div class="container">
-            <hr/>
-            <h5>Eligible</h5>
-            <table class="table">
-                <tr>
-                    <th>No</th>
-                    <th>Nama</th>
-                    <th>NIM</th>
-                    <th>SKS</th>
-                    <th>IPK</th>
-                    <th>Alasan</th>
-                </tr>
-            </table>
-            
-            <h5>Non Eligible</h5>
-            <table class="table">
-                <tr>
-                    <th>No</th>
-                    <th>Nama</th>
-                    <th>NIM</th>
-                    <th>SKS</th>
-                    <th>IPK</th>
-                    <th>Alasan</th>
-                </tr>
-            </table>
-        </div>
+$result = pg_query($conn, $sql);
+// if (!$result) {
+//     echo "An error occurred.\n";
+//     exit;
+// }
 
-        <h2>Pemasangan</h2>
-        <div class="container">
-            <hr/>
-            <h5>Eligible</h5>
-            <table class="table">
-                <tr>
-                    <th>No</th>
-                    <th>Nama</th>
-                    <th>NIM</th>
-                    <th>SKS</th>
-                    <th>IPK</th>
-                    <th>Alasan</th>
-                </tr>
-            </table>
-            
-            <h5>Non Eligible</h5>
-            <table class="table">
-                <tr>
-                    <th>No</th>
-                    <th>Nama</th>
-                    <th>NIM</th>
-                    <th>SKS</th>
-                    <th>IPK</th>
-                    <th>Alasan</th>
-                </tr>
-            </table>
-        </div>
+$sms = pg_fetch_all($result);
+// echo "<pre>";
+// var_dump($sms);
+// print_r($sms);
+// die;
+include('header.php');
+
+?><body>
+    <div class="container mt-5">
+        <form action="result.php" method="post">
+        <h3>Sistem PIN PIN PIN</h3> <br/> <br/>
+        <label>Pilih Prodi</label>
+        <select class="form-control" name="id_sms" id="id_sms">
+            <?php foreach($sms as $prodi) : ?>
+                <option value="<?= $prodi['id_sms'] ?>"><?= $prodi['jenjang'] . ' - ' . $prodi['nm_lemb'] ?></option>
+            <?php endforeach; ?>
+        </select>
+        <br/>
+        <label>Jenis</label>
+        <select class="form-control" name="jenis" id="jenis">
+            <option value="reservasi">Reservasi</option>
+            <option value="pemasangan">Pemasangan</option>
+        </select>
+        <br/>
+        <button class="btn btn-primary" type="submit">Submit</button>
+    </form>
     </div>
-
 </body>
 </html>
